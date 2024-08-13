@@ -58,7 +58,7 @@ Sub CompareFoldersAndSendEmailUpdate()
                 End If
             Next file1
           
-            ' If the file in folder1 does not exist in folder2, add it to the missingFiles string
+            ' list missing files
             If Not fileExists Then
                 missingFiles = missingFiles & file2.Name & vbCrLf
             End If
@@ -85,7 +85,6 @@ Sub CompareFoldersAndSendEmailUpdate()
             .Send
         End With
       
-        ' Clean up
         Set OutMail = Nothing
         Set OutApp = Nothing
       
