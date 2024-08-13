@@ -1,0 +1,96 @@
+Sub CompareFoldersAndSendEmailUpdate()
+   ' variables
+    Dim folderPath1 As String
+    Dim folderPath2 As String
+    Dim folder1 As Object
+    Dim folder2 As Object
+    Dim file1 As Object
+    Dim file2 As Object
+    Dim fileCount1 As Long
+    Dim fileCount2 As Long
+    Dim missingFiles As String
+    Dim fileExists As Boolean
+    Dim todayDate As String
+    Dim currentYear As String
+    Dim currentMonth As String
+    Dim yearMonth As String
+    Dim emailBody As String
+    Dim OutApp As Object
+    Dim OutMail As Object
+  
+    ' date in mmddyy
+    todayDate = Format(Date, "mmddyy")
+  
+    ' year in yyyy , month in mm
+    currentYear = Format(Date, "yyyy")
+    currentMonth = Format(Date, "mm")
+  
+    ' set yearMonth
+    yearMonth = currentYear & "_" & currentMonth
+  
+    ' dynamic folder path
+    folderPath1 = "K:\Project Management\PRSM Backup\" & currentYear & "\" & yearMonth & "\" & todayDate
+    folderPath2 = "K:\Project Management\PRSM Backup\2024\2024_08\080124\"
+  
+    fileCount1 = 0
+    fileCount2 = 0
+    missingFiles = ""
+  
+    Dim fso As Object
+    Set fso = CreateObject("Scripting.FileSystemObject")
+  
+    ' check folders
+    If fso.FolderExists(folderPath1) And fso.FolderExists(folderPath2) Then
+        ' Get the folders
+        Set folder1 = fso.GetFolder(folderPath1)
+        Set folder2 = fso.GetFolder(folderPath2)
+      
+        ' count files in folder 2
+        For Each file2 In folder2.Files
+            fileCount2 = fileCount1 + 1
+          
+            ' compare files from folder 2 to folder 1
+            fileExists = False
+            For Each file1 In folder1.Files
+                If file2.Name = file1.Name Then
+                    fileExists = True
+                    Exit For
+                End If
+            Next file1
+          
+            ' If the file in folder1 does not exist in folder2, add it to the missingFiles string
+            If Not fileExists Then
+                missingFiles = missingFiles & file2.Name & vbCrLf
+            End If
+        Next file2
+      
+        ' count files in the folder 1
+        For Each file1 In folder1.Files
+            fileCount1 = fileCount1 + 1
+        Next file1
+      
+        ' email file 2 count and missing files list
+        Set OutApp = CreateObject("Outlook.Application")
+        Set OutMail = OutApp.CreateItem(0)
+        emailBody = "Number of files in Folder " & todayDate & ": " & fileCount1 & vbCrLf & vbCrLf & _
+                    "Missing files in Folder " & todayDate & ":" & vbCrLf & _
+                    IIf(missingFiles = "", "None", missingFiles)
+      
+        With OutMail
+            .To = allison.chiang@dot.ca.gov
+            .CC = ""
+            .BCC = ""
+            .Subject = "Folder Comparison Results"
+            .Body = emailBody
+            .Send
+        End With
+      
+        ' Clean up
+        Set OutMail = Nothing
+        Set OutApp = Nothing
+      
+        MsgBox "Email sent."
+    Else
+        MsgBox "Error."
+    End If
+End Sub
